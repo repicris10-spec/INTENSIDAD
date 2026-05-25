@@ -45,15 +45,220 @@
     z-index: 998;
   }
 
+  /* ===== ACCESS GATE ===== */
+  #access-gate {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: var(--darker);
+    z-index: 2000;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 20px;
+    overflow: hidden;
+  }
+
+  /* ASCII Face */
+  #ascii-face-container {
+    margin-bottom: 24px;
+    text-align: center;
+    position: relative;
+  }
+  #ascii-face {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(5px, 1.1vw, 9px);
+    line-height: 1.15;
+    color: var(--green);
+    text-shadow: 0 0 4px var(--green-dim);
+    white-space: pre;
+    display: block;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+    filter: drop-shadow(0 0 8px var(--green-dim));
+  }
+  #ascii-face.visible { opacity: 1; }
+
+  /* Scanning line over face */
+  #scan-line {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0.7;
+    animation: scanDown 2.5s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes scanDown {
+    0% { top: 0%; opacity: 0.8; }
+    90% { top: 100%; opacity: 0.6; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  /* Glitch on face */
+  @keyframes faceGlitch {
+    0%,92%,100% { filter: drop-shadow(0 0 8px var(--green-dim)); transform: translate(0); }
+    93% { filter: drop-shadow(0 0 8px #ff00ff) hue-rotate(120deg); transform: translate(-2px,0); }
+    94% { filter: drop-shadow(0 0 8px var(--cyan)); transform: translate(2px,0); }
+    95% { filter: drop-shadow(0 0 8px var(--green-dim)); transform: translate(0); }
+  }
+  #ascii-face.visible { animation: faceGlitch 5s infinite; }
+
+  /* ACCESS text above */
+  .gate-label {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(0.55rem, 1.5vw, 0.85rem);
+    color: var(--green-dim);
+    letter-spacing: 4px;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .gate-title {
+    font-family: 'VT323', monospace;
+    font-size: clamp(1.6rem, 5vw, 2.8rem);
+    color: var(--pink);
+    text-shadow: 0 0 20px var(--pink);
+    letter-spacing: 6px;
+    text-align: center;
+    margin-bottom: 20px;
+    animation: pinkPulse 2s ease-in-out infinite;
+  }
+  @keyframes pinkPulse {
+    0%,100% { text-shadow: 0 0 20px var(--pink); }
+    50% { text-shadow: 0 0 40px var(--pink), 0 0 80px rgba(255,110,180,0.4); }
+  }
+
+  /* Password form */
+  .gate-form {
+    width: min(420px, 92vw);
+    border: 1px solid var(--green-dim);
+    padding: 22px;
+    background: #010c06;
+    position: relative;
+    overflow: hidden;
+  }
+  .gate-form::before {
+    content: '';
+    position: absolute; top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0,255,136,0.04), transparent);
+    animation: formSweep 3s ease-in-out infinite;
+  }
+  @keyframes formSweep { 0%{left:-100%} 100%{left:100%} }
+
+  .gate-question {
+    font-size: 0.82rem;
+    color: var(--cyan);
+    letter-spacing: 2px;
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+  .gate-question::before { content: '◈ CLAVE: '; color: var(--green-dim); }
+
+  .gate-input-wrap {
+    display: flex; gap: 8px; align-items: center; margin-bottom: 14px;
+  }
+  .gate-input {
+    flex: 1;
+    background: var(--darker);
+    border: 1px solid #003322;
+    color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem;
+    padding: 10px 14px;
+    outline: none;
+    letter-spacing: 3px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .gate-input:focus { border-color: var(--green); box-shadow: 0 0 10px var(--green-glow); }
+  .gate-input::placeholder { color: #004422; letter-spacing: 1px; }
+
+  .gate-btn {
+    background: transparent;
+    border: 1px solid var(--green-dim);
+    color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    padding: 10px 16px;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .gate-btn:hover { border-color: var(--green); background: rgba(0,255,136,0.08); box-shadow: 0 0 12px var(--green-glow); }
+
+  .gate-status {
+    font-size: 0.78rem;
+    min-height: 1.4em;
+    letter-spacing: 2px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .gate-status.show { opacity: 1; }
+  .gate-status.err { color: var(--red); }
+  .gate-status.err::before { content: '[ERR] '; color: #880000; }
+  .gate-status.ok { color: var(--green); }
+  .gate-status.ok::before { content: '[OK] '; color: #006633; }
+
+  /* Decoding animation */
+  #decoding-overlay {
+    display: none;
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: var(--darker);
+    z-index: 2100;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+  }
+  #decoding-overlay.active { display: flex; }
+  .decode-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(0.8rem, 2.5vw, 1.2rem);
+    color: var(--cyan);
+    letter-spacing: 5px;
+    text-shadow: 0 0 14px var(--cyan);
+    animation: cyanBlink 0.6s step-end infinite;
+  }
+  @keyframes cyanBlink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .decode-lines {
+    font-size: 0.75rem;
+    color: var(--green-dim);
+    letter-spacing: 2px;
+    text-align: center;
+    line-height: 2;
+    max-width: 400px;
+  }
+  #decode-progress-bar {
+    width: min(360px, 80vw);
+    height: 4px;
+    background: #001a08;
+    border: 1px solid #003311;
+    overflow: hidden;
+  }
+  #decode-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green-dim), var(--green));
+    width: 0%;
+    transition: width 0.15s ease;
+    box-shadow: 0 0 8px var(--green);
+  }
+  #decode-pct {
+    font-size: 0.7rem;
+    color: var(--green);
+    letter-spacing: 3px;
+  }
+
   /* BOOT */
   #boot-screen {
     position: fixed; top: 0; left: 0;
     width: 100%; height: 100%;
     background: var(--darker);
     z-index: 1000;
-    display: flex; flex-direction: column;
+    display: none; flex-direction: column;
     align-items: center; justify-content: center; gap: 20px;
   }
+  #boot-screen.active { display: flex; }
   .boot-logo {
     font-family: 'Orbitron', monospace;
     font-size: clamp(2rem, 6vw, 4rem);
@@ -124,134 +329,62 @@
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
   .binary-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 0; opacity: 0.025; font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; color: var(--green); display: flex; flex-wrap: wrap; }
 
-  /* ===== QUIZ SECTION ===== */
+  /* QUIZ */
   #quiz-section {
-    display: none;
-    margin-top: 20px;
-    border: 1px solid var(--green-dim);
-    padding: 25px;
-    background: #010c06;
-    position: relative;
-    overflow: hidden;
-    z-index: 1;
+    display: none; margin-top: 20px; border: 1px solid var(--green-dim);
+    padding: 25px; background: #010c06; position: relative; overflow: hidden; z-index: 1;
   }
   #quiz-section::before {
-    content: '';
-    position: absolute; top: 0; left: -100%;
+    content: ''; position: absolute; top: 0; left: -100%;
     width: 100%; height: 100%;
     background: linear-gradient(90deg, transparent, rgba(0,255,136,0.03), transparent);
     animation: scanSweep 4s ease-in-out infinite;
   }
-  .quiz-header {
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(0.75rem, 2vw, 1rem);
-    color: var(--cyan);
-    letter-spacing: 4px;
-    margin-bottom: 20px;
-    text-shadow: 0 0 10px var(--cyan);
-  }
-  .quiz-question {
-    display: none;
-    animation: fadeIn 0.3s forwards;
-  }
+  .quiz-header { font-family: 'Orbitron', monospace; font-size: clamp(0.75rem, 2vw, 1rem); color: var(--cyan); letter-spacing: 4px; margin-bottom: 20px; text-shadow: 0 0 10px var(--cyan); }
+  .quiz-question { display: none; animation: fadeIn 0.3s forwards; }
   .quiz-question.active { display: block; }
   .q-number { color: var(--green-dim); font-size: 0.75rem; letter-spacing: 3px; margin-bottom: 8px; }
   .q-text { color: var(--white); font-size: 1rem; margin-bottom: 18px; line-height: 1.6; }
   .q-options { display: flex; flex-direction: column; gap: 10px; }
   .q-btn {
-    background: transparent;
-    border: 1px solid #003322;
-    color: var(--green);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.85rem;
-    padding: 12px 16px;
-    text-align: left;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
+    background: transparent; border: 1px solid #003322; color: var(--green);
+    font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; padding: 12px 16px;
+    text-align: left; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
   }
   .q-btn::before { content: '[ ] '; color: var(--green-dim); }
   .q-btn:hover { border-color: var(--green); background: rgba(0,255,136,0.05); text-shadow: 0 0 8px var(--green); }
-  .q-btn.correct {
-    border-color: var(--green);
-    background: rgba(0,255,136,0.12);
-    color: var(--green);
-    animation: correctPulse 0.5s ease;
-  }
+  .q-btn.correct { border-color: var(--green); background: rgba(0,255,136,0.12); color: var(--green); animation: correctPulse 0.5s ease; }
   .q-btn.correct::before { content: '[✓] '; color: var(--green); }
-  .q-btn.wrong {
-    border-color: var(--red);
-    background: rgba(255,68,68,0.08);
-    color: var(--red);
-  }
+  .q-btn.wrong { border-color: var(--red); background: rgba(255,68,68,0.08); color: var(--red); }
   .q-btn.wrong::before { content: '[✗] '; color: var(--red); }
-  @keyframes correctPulse {
-    0%,100% { box-shadow: none; }
-    50% { box-shadow: 0 0 20px var(--green); }
-  }
-  .q-feedback {
-    margin-top: 14px;
-    font-size: 0.85rem;
-    min-height: 1.5em;
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
+  @keyframes correctPulse { 0%,100% { box-shadow: none; } 50% { box-shadow: 0 0 20px var(--green); } }
+  .q-feedback { margin-top: 14px; font-size: 0.85rem; min-height: 1.5em; opacity: 0; transition: opacity 0.3s; }
   .q-feedback.visible { opacity: 1; }
   .q-feedback.ok { color: var(--green); }
   .q-feedback.ok::before { content: '[SYS] '; color: #006633; }
   .q-feedback.fail { color: var(--red); }
   .q-feedback.fail::before { content: '[ERR] '; color: #880000; }
-  .quiz-progress {
-    display: flex; gap: 6px; margin-bottom: 20px;
-  }
+  .quiz-progress { display: flex; gap: 6px; margin-bottom: 20px; }
   .q-dot { width: 20px; height: 4px; background: #003322; transition: background 0.3s; }
   .q-dot.done { background: var(--green); box-shadow: 0 0 6px var(--green); }
   .q-dot.current { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
 
   /* FINAL MESSAGE */
   #final-msg {
-    display: none;
-    text-align: center;
-    padding: 40px 20px;
-    border: 1px solid var(--pink);
-    margin-top: 30px;
-    background: rgba(255,110,180,0.03);
-    position: relative;
-    overflow: hidden;
-    z-index: 1;
+    display: none; text-align: center; padding: 40px 20px;
+    border: 1px solid var(--pink); margin-top: 30px;
+    background: rgba(255,110,180,0.03); position: relative; overflow: hidden; z-index: 1;
   }
   #final-msg::before {
-    content: '';
-    position: absolute; top: -50%; left: -50%;
+    content: ''; position: absolute; top: -50%; left: -50%;
     width: 200%; height: 200%;
     background: conic-gradient(from 0deg, transparent, rgba(255,110,180,0.05), transparent);
     animation: rotateSlow 10s linear infinite;
   }
   @keyframes rotateSlow { to { transform: rotate(360deg); } }
-  .final-title {
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(1.1rem, 3.5vw, 1.8rem);
-    color: var(--pink);
-    text-shadow: 0 0 20px var(--pink), 0 0 40px rgba(255,110,180,0.4);
-    letter-spacing: 4px;
-    margin-bottom: 20px;
-    position: relative; z-index: 1;
-    animation: pulsePink 2s ease-in-out infinite;
-  }
-  @keyframes pulsePink {
-    0%,100% { text-shadow: 0 0 20px var(--pink), 0 0 40px rgba(255,110,180,0.4); }
-    50% { text-shadow: 0 0 40px var(--pink), 0 0 80px rgba(255,110,180,0.6); }
-  }
-  .final-decoded {
-    font-family: 'VT323', monospace;
-    font-size: clamp(1.4rem, 4.5vw, 2.3rem);
-    color: var(--gold);
-    text-shadow: 0 0 20px var(--gold);
-    letter-spacing: 5px;
-    position: relative; z-index: 1;
-    margin: 10px 0 25px;
-  }
+  .final-title { font-family: 'Orbitron', monospace; font-size: clamp(1.1rem, 3.5vw, 1.8rem); color: var(--pink); text-shadow: 0 0 20px var(--pink), 0 0 40px rgba(255,110,180,0.4); letter-spacing: 4px; margin-bottom: 20px; position: relative; z-index: 1; animation: pulsePink 2s ease-in-out infinite; }
+  @keyframes pulsePink { 0%,100% { text-shadow: 0 0 20px var(--pink), 0 0 40px rgba(255,110,180,0.4); } 50% { text-shadow: 0 0 40px var(--pink), 0 0 80px rgba(255,110,180,0.6); } }
+  .final-decoded { font-family: 'VT323', monospace; font-size: clamp(1.4rem, 4.5vw, 2.3rem); color: var(--gold); text-shadow: 0 0 20px var(--gold); letter-spacing: 5px; position: relative; z-index: 1; margin: 10px 0 25px; }
   .final-sub { font-size: 0.82rem; color: var(--green-dim); position: relative; z-index: 1; max-width: 500px; margin: 0 auto; line-height: 2.1; }
   .heart-rain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 997; display: none; }
   .heart-particle { position: absolute; font-size: 1rem; opacity: 0; animation: fallHeart linear forwards; color: var(--pink); text-shadow: 0 0 8px var(--pink); }
@@ -273,11 +406,41 @@
 <div class="binary-bg" id="binaryBg"></div>
 <div class="heart-rain" id="heartRain"></div>
 
-<!-- BOOT -->
+<!-- ===== ACCESS GATE ===== -->
+<div id="access-gate">
+  <div class="gate-label">◈ SISTEMA DETECTANDO IDENTIDAD ◈</div>
+
+  <!-- ASCII Face -->
+  <div id="ascii-face-container">
+    <div id="scan-line"></div>
+    <pre id="ascii-face"></pre>
+  </div>
+
+  <div class="gate-title">ANGIE_TELLEZ.exe</div>
+
+  <div class="gate-form">
+    <div class="gate-question">¿Fecha del B1M? (dd/mm/aa)</div>
+    <div class="gate-input-wrap">
+      <input class="gate-input" id="gateInput" type="text" placeholder="dd/mm/aa" maxlength="8" autocomplete="off" spellcheck="false" />
+      <button class="gate-btn" id="gateBtn">INGRESAR</button>
+    </div>
+    <div class="gate-status" id="gateStatus"></div>
+  </div>
+</div>
+
+<!-- ===== DECODING OVERLAY ===== -->
+<div id="decoding-overlay">
+  <div class="decode-title">DECODIFICANDO...</div>
+  <div class="decode-lines" id="decodeLines"></div>
+  <div id="decode-progress-bar"><div id="decode-progress-fill"></div></div>
+  <div id="decode-pct">0%</div>
+</div>
+
+<!-- ===== BOOT ===== -->
 <div id="boot-screen">
   <div class="boot-logo glitch">AMOR.SYS</div>
   <div class="boot-sub">INICIALIZANDO PROTOCOLO ANGIE_TELLEZ</div>
-  <div class="boot-bar-container"><div class="boot-bar"></div></div>
+  <div class="boot-bar-container"><div class="boot-bar" id="bootBar"></div></div>
   <div class="boot-status" id="bootStatus">CARGANDO MEMORIAS... 0%</div>
 </div>
 
@@ -319,29 +482,171 @@ for(let i=0;i<1800;i++){
   s.style.cssText=`display:inline-block;padding:2px;animation:bF ${3+Math.random()*5}s ease-in-out ${Math.random()*5}s infinite alternate;`;
   binaryBg.appendChild(s);
 }
-const st=document.createElement('style');
-st.textContent='@keyframes bF{0%{opacity:0}50%{opacity:1}100%{opacity:0}}';
-document.head.appendChild(st);
+const bfSt=document.createElement('style');
+bfSt.textContent='@keyframes bF{0%{opacity:0}50%{opacity:1}100%{opacity:0}}';
+document.head.appendChild(bfSt);
+
+// ===== ASCII FACE =====
+// Detailed ASCII portrait based on the photo: girl with glasses, hoop earrings, holding roses
+const asciiArt = `
+                    .,:codxkkkkkkkkkxdoc:,.
+                 .;lx0KKKKK0OOkkkkkkkOO0KK0xl;.
+               ,lkKKK0koc:,...........,:coOKKKkl,
+             .oKKKOo:. ...,;cldxkkkkxdlc;,. .;oOKKo.
+            ;0KKx,  ..,cdkO000KKKKKKK000Okdc,.  ,xKK0;
+           l0K0;  .;ok0KKK00OkxxxxkkkkxO0KKK0ko;. ;0KKl
+          oKK0, .ckKKKOo:,..             ..,;coOKKkc. ,0KKo
+         lKK0, l0KKkl,.                         ,lkKKO, ,0KKl
+        ,KK0; dKKk:                               .;OKKd  ;0KK,
+        xKKo oKKk.          .,coxkkxoc,.            .kKKo  oKKx
+        0KK; OKKl         ;dOKKKKKKKKK0ko,           lKK0  ;KK0
+        KK0. OKKl        l0KKK0OkxxxkO0KKK0l          lKK0  0KK
+        KK0. 0KKo       ;KKKk:.       .,oOKK0;         oKKk  KK0
+        KK0. 0KKk.      oKKKl            l0KKk         xKKx  KK0
+        KKk  oKKK:      xKKKo            ;0KKx        ,KKKo  kKK
+        0KK; .kKK0,     ;KKK0:          ,0KKx.        OKKd  ;KK0
+        oKKx  ,OKK0l.    lKKKKkl;,,,,;lkKKKo.       lKKO.  xKKo
+        .OKKo  .oKKK0xc,  ;OKKKKKKKKKKKKK0l.      .l0KKl  .OKKl
+         ,KKKl   ,dKKKK0koc,,lxO000000Oxl,.    .,lkKKKx.  lKKK,
+          lKKK0o,  .;oOKKKK0kdoc:::::codxkkxxxOKKKKKx;  ,dKKKl
+           ,kKKKKOo:.  .,cxOKKKKKKKKKKKKKKKKKOoc,.   .;xKKKKd,
+            .oKKKKKK0kdc,.  ...,;;::::::;;,...   .,cdOKKKKKKo.
+              ;kKKKKKKKKK0OxdoolcccccccclodxO0KKKKKKKKKK0d;
+               .;dOKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKOd;.
+                  .;ldO0KKKKKKKKKKKKKKKKKKKKKK0Oxl;.
+                      ..,:codxkOOOOOOOkxdoc:,..
+        ___   _  _  ___ ___  ___   _____  ___ _    _    ___ ____
+       /   | | \| |/ __|_ _|| __| |_   _|| __| |  | |  | __| __ \\
+      / /| | | .  | (_ || | | _|    | |  | _|| |__| |__| _||    /
+     /_/ |_| |_|\_|\___||_| |___|   |_|  |___|____|____|___|_|\_\\`;
+
+// Render ASCII face character by character
+const asciiEl = document.getElementById('ascii-face');
+asciiEl.textContent = '';
+setTimeout(() => {
+  asciiEl.textContent = asciiArt;
+  asciiEl.classList.add('visible');
+}, 300);
+
+// ===== FORMAT INPUT =====
+const gateInput = document.getElementById('gateInput');
+gateInput.addEventListener('input', function() {
+  let v = this.value.replace(/[^0-9]/g, '');
+  let formatted = '';
+  if(v.length > 0) formatted = v.substring(0,2);
+  if(v.length > 2) formatted += '/' + v.substring(2,4);
+  if(v.length > 4) formatted += '/' + v.substring(4,6);
+  this.value = formatted;
+});
+gateInput.addEventListener('keydown', function(e) {
+  if(e.key === 'Enter') checkAccess();
+});
+document.getElementById('gateBtn').addEventListener('click', checkAccess);
+
+// ===== ACCESS CHECK =====
+function checkAccess() {
+  const val = gateInput.value.trim();
+  const status = document.getElementById('gateStatus');
+  if(val === '01/05/23') {
+    status.textContent = 'Clave correcta. Iniciando decodificación...';
+    status.className = 'gate-status show ok';
+    setTimeout(startDecoding, 800);
+  } else {
+    status.textContent = 'Acceso denegado. Clave incorrecta.';
+    status.className = 'gate-status show err';
+    gateInput.value = '';
+    gateInput.focus();
+    // Shake effect
+    gateInput.style.borderColor = 'var(--red)';
+    gateInput.style.boxShadow = '0 0 10px rgba(255,68,68,0.4)';
+    setTimeout(() => {
+      gateInput.style.borderColor = '#003322';
+      gateInput.style.boxShadow = 'none';
+    }, 1000);
+  }
+}
+
+// ===== DECODING ANIMATION =====
+const decodeMessages = [
+  '[SYS] Autenticación recibida...',
+  '[OK] Clave válida: 01/05/23',
+  '[SYS] Desencriptando protocolo AMOR.SYS...',
+  '[INFO] Cargando memorias compartidas...',
+  '[OK] Archivo: primer_beso.mem — VERIFICADO',
+  '[OK] Archivo: 299km_navidad.mem — VERIFICADO',
+  '[INFO] Compilando historial sentimental...',
+  '[SYS] Acceso concedido. Bienvenida, cielo. ♥',
+];
+
+function startDecoding() {
+  document.getElementById('access-gate').style.display = 'none';
+  const overlay = document.getElementById('decoding-overlay');
+  overlay.classList.add('active');
+  const linesEl = document.getElementById('decodeLines');
+  const fillEl = document.getElementById('decode-progress-fill');
+  const pctEl = document.getElementById('decode-pct');
+
+  let lineIdx = 0;
+  let pct = 0;
+
+  const lineIv = setInterval(() => {
+    if(lineIdx < decodeMessages.length) {
+      linesEl.innerHTML = decodeMessages.slice(0, lineIdx+1).join('<br>');
+      lineIdx++;
+    } else {
+      clearInterval(lineIv);
+    }
+  }, 350);
+
+  const pctIv = setInterval(() => {
+    pct = Math.min(pct + 1, 100);
+    fillEl.style.width = pct + '%';
+    pctEl.textContent = pct + '%';
+    if(pct >= 100) {
+      clearInterval(pctIv);
+      setTimeout(() => {
+        overlay.classList.remove('active');
+        startBoot();
+      }, 600);
+    }
+  }, 28);
+}
 
 // ===== BOOT =====
-const bootStatus=document.getElementById('bootStatus');
-const bMsgs=['CARGANDO MEMORIAS... 15%','CARGANDO MEMORIAS... 32%','PROTOCOLO AMOR: ACTIVO... 48%','DESCIFRANDO RECUERDOS... 64%','CARGANDO CARTAGENA.mem... 78%','CARGANDO 24DIC.mem... 89%','ANGIE_TELLEZ.exe LISTA... 97%','SISTEMA LISTO ✓ 100%'];
-let bi=0;
-const bI=setInterval(()=>{ if(bi<bMsgs.length) bootStatus.textContent=bMsgs[bi++]; else clearInterval(bI); },400);
-setTimeout(()=>{
-  const bs=document.getElementById('boot-screen');
-  bs.style.transition='opacity 1s'; bs.style.opacity='0';
-  setTimeout(()=>{ bs.style.display='none'; document.getElementById('terminal').style.display='block'; startTerminal(); },1000);
-},3800);
+function startBoot() {
+  const bs = document.getElementById('boot-screen');
+  bs.classList.add('active');
+
+  const bootStatus = document.getElementById('bootStatus');
+  const bMsgs = ['CARGANDO MEMORIAS... 15%','CARGANDO MEMORIAS... 32%','PROTOCOLO AMOR: ACTIVO... 48%','DESCIFRANDO RECUERDOS... 64%','CARGANDO CARTAGENA.mem... 78%','CARGANDO 24DIC.mem... 89%','ANGIE_TELLEZ.exe LISTA... 97%','SISTEMA LISTO ✓ 100%'];
+  let bi = 0;
+  const bI = setInterval(() => { if(bi < bMsgs.length) bootStatus.textContent = bMsgs[bi++]; else clearInterval(bI); }, 400);
+
+  // Animate boot bar
+  const bootBar = document.getElementById('bootBar');
+  bootBar.style.animation = 'none';
+  bootBar.offsetHeight; // reflow
+  bootBar.style.animation = 'loadBar 3.2s ease-in-out forwards';
+
+  setTimeout(() => {
+    bs.style.transition = 'opacity 1s'; bs.style.opacity = '0';
+    setTimeout(() => {
+      bs.classList.remove('active');
+      bs.style.display = 'none';
+      document.getElementById('terminal').style.display = 'block';
+      startTerminal();
+    }, 1000);
+  }, 3800);
+}
 
 // ===== DATA =====
-const startDate=new Date('2023-12-09');
-const now=new Date();
-const days=Math.floor((now-startDate)/(1000*60*60*24));
-const months=Math.floor(days/30);
+const startDate = new Date('2023-12-09');
+const now = new Date();
+const days = Math.floor((now - startDate) / (1000 * 60 * 60 * 24));
+const months = Math.floor(days / 30);
 
 // ===== QUIZ DATA =====
-const questions=[
+const questions = [
   {
     id:1,
     q:'¿En qué año fue el primer beso entre Cristian y Angie?',
@@ -385,8 +690,8 @@ const questions=[
 ];
 
 // ===== TERMINAL ENGINE =====
-const output=document.getElementById('output');
-const script=[
+const output = document.getElementById('output');
+const termScript = [
   {type:'system',text:'AMOR.SYS v∞ — Sistema Operativo Sentimental',delay:0},
   {type:'system',text:'Núcleo: CRISTIAN_REPIZO — Target: ANGIE_TELLEZ',delay:60},
   {type:'blank',delay:40},
@@ -462,8 +767,8 @@ const script=[
 
 async function startTerminal(){
   let cumDelay=0;
-  for(let i=0;i<script.length;i++){
-    const item=script[i];
+  for(let i=0;i<termScript.length;i++){
+    const item=termScript[i];
     cumDelay+=item.delay||50;
     if(item.type==='stats'){
       await new Promise(r=>setTimeout(r,cumDelay));
@@ -524,8 +829,7 @@ function renderStats(){
 }
 
 // ===== QUIZ =====
-let currentQ=0;
-let score=0;
+let currentQ=0, score=0;
 
 function startQuiz(){
   const qs=document.getElementById('quiz-section');
@@ -552,9 +856,7 @@ function updateProgress(idx,correct){
   dots[idx].classList.add('done');
   dots[idx].style.background=correct?'var(--green)':'var(--red)';
   dots[idx].style.boxShadow=correct?'0 0 6px var(--green)':'0 0 6px var(--red)';
-  if(idx+1<questions.length){
-    dots[idx+1].classList.add('current');
-  }
+  if(idx+1<questions.length){ dots[idx+1].classList.add('current'); }
 }
 
 function showQuestion(idx){
@@ -587,9 +889,7 @@ function answerQuestion(qIdx,chosenIdx,btn,optsEl){
   const allBtns=optsEl.querySelectorAll('.q-btn');
   allBtns.forEach(b=>b.disabled=true);
   btn.classList.add(isCorrect?'correct':'wrong');
-  if(!isCorrect){
-    allBtns[q.correct].classList.add('correct');
-  }
+  if(!isCorrect){ allBtns[q.correct].classList.add('correct'); }
   if(isCorrect) score++;
   const fb=document.getElementById('fb'+qIdx);
   fb.textContent=isCorrect?q.okMsg:q.failMsg;
@@ -597,12 +897,8 @@ function answerQuestion(qIdx,chosenIdx,btn,optsEl){
   updateProgress(qIdx,isCorrect);
   setTimeout(()=>{
     currentQ++;
-    if(currentQ<questions.length){
-      showQuestion(currentQ);
-      window.scrollTo(0,document.body.scrollHeight);
-    } else {
-      finishQuiz();
-    }
+    if(currentQ<questions.length){ showQuestion(currentQ); window.scrollTo(0,document.body.scrollHeight); }
+    else { finishQuiz(); }
   },2000);
 }
 
@@ -625,24 +921,15 @@ function finishQuiz(){
 
 function startFinalDecrypt(){
   const qs=document.getElementById('quiz-section');
-  // Show cipher block
   setTimeout(()=>{
     const line1=document.createElement('span');
     line1.className='prompt';
     line1.textContent='decrypt --archivo=mensaje_final.enc --clave=amor_real';
     qs.appendChild(line1);
+    const br=document.createElement('span'); br.className='blank'; qs.appendChild(br);
+    const s1=document.createElement('span'); s1.className='system'; s1.textContent='Iniciando protocolo de descifrado...'; qs.appendChild(s1);
+    const br2=document.createElement('span'); br2.className='blank'; qs.appendChild(br2);
 
-    const br=document.createElement('span');
-    br.className='blank'; qs.appendChild(br);
-
-    const s1=document.createElement('span');
-    s1.className='system'; s1.textContent='Iniciando protocolo de descifrado...';
-    qs.appendChild(s1);
-
-    const br2=document.createElement('span');
-    br2.className='blank'; qs.appendChild(br2);
-
-    // Progress bars
     const progs=[
       {label:'Decodificando sentimientos',val:97},
       {label:'Verificando autenticidad del amor',val:100},
@@ -650,30 +937,22 @@ function startFinalDecrypt(){
     ];
     progs.forEach((p,pi)=>{
       setTimeout(()=>{
-        const pb=document.createElement('div');
-        pb.className='progress-block';
+        const pb=document.createElement('div'); pb.className='progress-block';
         const uid='pf'+Math.random().toString(36).substr(2,4);
         pb.innerHTML=`<div class="progress-label">${p.label}</div><div class="progress-bar-wrap"><div class="p-bar"><div class="p-fill" id="${uid}"></div></div><span class="p-val" id="pv${uid}">0%</span></div>`;
         qs.appendChild(pb);
         setTimeout(()=>{
-          const fill=document.getElementById(uid);
-          const val=document.getElementById('pv'+uid);
+          const fill=document.getElementById(uid); const val=document.getElementById('pv'+uid);
           if(fill){ fill.style.width=p.val+'%'; }
           let cur=0;
-          const iv=setInterval(()=>{
-            cur=Math.min(cur+3,p.val);
-            if(val) val.textContent=cur+'%';
-            if(cur>=p.val) clearInterval(iv);
-          },30);
+          const iv=setInterval(()=>{ cur=Math.min(cur+3,p.val); if(val) val.textContent=cur+'%'; if(cur>=p.val) clearInterval(iv); },30);
         },100);
         window.scrollTo(0,document.body.scrollHeight);
       },pi*700);
     });
 
-    // Cipher block after bars
     setTimeout(()=>{
-      const cb=document.createElement('div');
-      cb.className='cipher-block';
+      const cb=document.createElement('div'); cb.className='cipher-block';
       const cMsg='cGFzZSBsbyBxdWUgcGFzZSwgc2llbXByZSBzZXJlbW9z';
       const finalMsg='PASE LO QUE PASE, SIEMPRE SEREMOS';
       cb.innerHTML=`<div class="cipher-label">◈ MENSAJE CIFRADO DETECTADO ◈</div><div class="cipher-text" id="cipherTxt">${cMsg}</div>`;
@@ -689,11 +968,7 @@ function startFinalDecrypt(){
           const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
           const rest=Array(finalMsg.length-rev).fill(0).map(()=>chars[Math.floor(Math.random()*chars.length)]).join('');
           if(ct) ct.textContent=revealed+rest;
-          if(prog>=40){
-            if(ct) ct.textContent=finalMsg;
-            clearInterval(iv);
-            setTimeout(showFinal,1200);
-          }
+          if(prog>=40){ if(ct) ct.textContent=finalMsg; clearInterval(iv); setTimeout(showFinal,1200); }
         },80);
       },600);
     },2500);
