@@ -64,16 +64,14 @@
     position: relative;
   }
   #ascii-face {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: clamp(5px, 1.1vw, 9px);
-    line-height: 1.15;
-    color: var(--green);
-    text-shadow: 0 0 4px var(--green-dim);
-    white-space: pre;
     display: block;
     opacity: 0;
     transition: opacity 1.2s ease;
-    filter: drop-shadow(0 0 8px var(--green-dim));
+    filter: drop-shadow(0 0 10px var(--green-dim));
+    max-width: 320px;
+    max-height: 260px;
+    width: min(320px, 85vw);
+    height: auto;
   }
   #ascii-face.visible { opacity: 1; }
 
@@ -413,7 +411,7 @@
   <!-- ASCII Face -->
   <div id="ascii-face-container">
     <div id="scan-line"></div>
-    <pre id="ascii-face"></pre>
+    <canvas id="ascii-face" width="320" height="260"></canvas>
   </div>
 
   <div class="gate-title">ANGIE_TELLEZ.exe</div>
@@ -488,45 +486,193 @@ document.head.appendChild(bfSt);
 
 // ===== ASCII FACE =====
 // Detailed ASCII portrait based on the photo: girl with glasses, hoop earrings, holding roses
-const asciiArt = `
-                    .,:codxkkkkkkkkkxdoc:,.
-                 .;lx0KKKKK0OOkkkkkkkOO0KK0xl;.
-               ,lkKKK0koc:,...........,:coOKKKkl,
-             .oKKKOo:. ...,;cldxkkkkxdlc;,. .;oOKKo.
-            ;0KKx,  ..,cdkO000KKKKKKK000Okdc,.  ,xKK0;
-           l0K0;  .;ok0KKK00OkxxxxkkkkxO0KKK0ko;. ;0KKl
-          oKK0, .ckKKKOo:,..             ..,;coOKKkc. ,0KKo
-         lKK0, l0KKkl,.                         ,lkKKO, ,0KKl
-        ,KK0; dKKk:                               .;OKKd  ;0KK,
-        xKKo oKKk.          .,coxkkxoc,.            .kKKo  oKKx
-        0KK; OKKl         ;dOKKKKKKKKK0ko,           lKK0  ;KK0
-        KK0. OKKl        l0KKK0OkxxxkO0KKK0l          lKK0  0KK
-        KK0. 0KKo       ;KKKk:.       .,oOKK0;         oKKk  KK0
-        KK0. 0KKk.      oKKKl            l0KKk         xKKx  KK0
-        KKk  oKKK:      xKKKo            ;0KKx        ,KKKo  kKK
-        0KK; .kKK0,     ;KKK0:          ,0KKx.        OKKd  ;KK0
-        oKKx  ,OKK0l.    lKKKKkl;,,,,;lkKKKo.       lKKO.  xKKo
-        .OKKo  .oKKK0xc,  ;OKKKKKKKKKKKKK0l.      .l0KKl  .OKKl
-         ,KKKl   ,dKKKK0koc,,lxO000000Oxl,.    .,lkKKKx.  lKKK,
-          lKKK0o,  .;oOKKKK0kdoc:::::codxkkxxxOKKKKKx;  ,dKKKl
-           ,kKKKKOo:.  .,cxOKKKKKKKKKKKKKKKKKOoc,.   .;xKKKKd,
-            .oKKKKKK0kdc,.  ...,;;::::::;;,...   .,cdOKKKKKKo.
-              ;kKKKKKKKKK0OxdoolcccccccclodxO0KKKKKKKKKK0d;
-               .;dOKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKOd;.
-                  .;ldO0KKKKKKKKKKKKKKKKKKKKKK0Oxl;.
-                      ..,:codxkOOOOOOOkxdoc:,..
-        ___   _  _  ___ ___  ___   _____  ___ _    _    ___ ____
-       /   | | \| |/ __|_ _|| __| |_   _|| __| |  | |  | __| __ \\
-      / /| | | .  | (_ || | | _|    | |  | _|| |__| |__| _||    /
-     /_/ |_| |_|\_|\___||_| |___|   |_|  |___|____|____|___|_|\_\\`;
+// Draw portrait on canvas with hacker aesthetic
+const canvas = document.getElementById('ascii-face');
+canvas.style.opacity = '0';
+canvas.style.transition = 'opacity 1.2s ease';
+const ctx = canvas.getContext('2d');
 
-// Render ASCII face character by character
-const asciiEl = document.getElementById('ascii-face');
-asciiEl.textContent = '';
-setTimeout(() => {
-  asciiEl.textContent = asciiArt;
-  asciiEl.classList.add('visible');
-}, 300);
+function drawPortrait() {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  
+  // Background
+  ctx.fillStyle = '#010804';
+  ctx.fillRect(0,0,W,H);
+  
+  const g = '#00ff88', gd = '#00cc66', gf = '#00ff8840';
+  
+  function line(x1,y1,x2,y2,color,w) {
+    ctx.strokeStyle = color||g; ctx.lineWidth = w||1.5;
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  }
+  function curve(pts, color, w) {
+    ctx.strokeStyle = color||g; ctx.lineWidth = w||1.5;
+    ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+    for(let i=1;i<pts.length-1;i++) {
+      const mx=(pts[i][0]+pts[i+1][0])/2, my=(pts[i][1]+pts[i+1][1])/2;
+      ctx.quadraticCurveTo(pts[i][0],pts[i][1],mx,my);
+    }
+    ctx.lineTo(pts[pts.length-1][0],pts[pts.length-1][1]);
+    ctx.stroke();
+  }
+  function ellipse(cx,cy,rx,ry,color,fill,w) {
+    ctx.strokeStyle = color||g; ctx.lineWidth = w||1.5;
+    ctx.beginPath(); ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
+    if(fill) { ctx.fillStyle=fill; ctx.fill(); }
+    ctx.stroke();
+  }
+  
+  // Shadow/glow
+  ctx.shadowColor = '#00ff88';
+  ctx.shadowBlur = 6;
+
+  // === HAIR (dark, long) ===
+  // Top of head / hair
+  ctx.fillStyle = '#003311';
+  ctx.strokeStyle = gd; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(80,50);
+  ctx.bezierCurveTo(75,20, 160,5, 245,20);
+  ctx.bezierCurveTo(265,30, 260,50, 255,65);
+  ctx.bezierCurveTo(270,80, 270,150, 260,220);
+  ctx.lineTo(255,260); ctx.lineTo(230,260);
+  ctx.lineTo(235,200); ctx.bezierCurveTo(245,160, 245,120, 235,90);
+  ctx.bezierCurveTo(230,75, 215,60, 190,52);
+  ctx.bezierCurveTo(165,42, 130,42, 110,52);
+  ctx.bezierCurveTo(90,60, 80,75, 75,95);
+  ctx.bezierCurveTo(68,120, 68,160, 75,200);
+  ctx.lineTo(80,260); ctx.lineTo(55,260);
+  ctx.lineTo(50,220); ctx.bezierCurveTo(42,150, 42,80, 55,65);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  
+  // === FACE OVAL ===
+  ctx.shadowBlur = 8;
+  ctx.fillStyle = '#011a09';
+  ctx.strokeStyle = g; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(160, 145, 75, 95, 0, 0, Math.PI*2);
+  ctx.fill(); ctx.stroke();
+  
+  // === EYEBROWS (strong, defined) ===
+  ctx.shadowBlur = 4;
+  ctx.strokeStyle = g; ctx.lineWidth = 2.5;
+  // Left eyebrow
+  curve([[105,105],[115,98],[130,95],[145,98]], g, 2.5);
+  // Right eyebrow  
+  curve([[175,98],[190,95],[205,98],[215,105]], g, 2.5);
+  
+  // === EYES (almond, with cat liner) ===
+  ctx.strokeStyle = g; ctx.lineWidth = 1.8;
+  // Left eye - almond shape
+  ctx.beginPath();
+  ctx.moveTo(100,118);
+  ctx.quadraticCurveTo(122,108, 145,118);
+  ctx.quadraticCurveTo(122,130, 100,118);
+  ctx.fillStyle = '#001a08'; ctx.fill(); ctx.stroke();
+  // Left iris
+  ctx.fillStyle = '#003311'; ctx.strokeStyle = gd; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.ellipse(122,118,9,8,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  // Left pupil
+  ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(122,118,4,4,0,0,Math.PI*2); ctx.fill();
+  // Left eye highlight
+  ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(125,115,2,2,0,0,Math.PI*2); ctx.fill();
+  // Left cat eyeliner extension
+  ctx.strokeStyle = g; ctx.lineWidth = 1.8;
+  ctx.beginPath(); ctx.moveTo(100,118); ctx.lineTo(90,113); ctx.stroke();
+  
+  // Right eye
+  ctx.strokeStyle = g; ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.moveTo(175,118);
+  ctx.quadraticCurveTo(197,108, 220,118);
+  ctx.quadraticCurveTo(197,130, 175,118);
+  ctx.fillStyle = '#001a08'; ctx.fill(); ctx.stroke();
+  // Right iris
+  ctx.fillStyle = '#003311'; ctx.strokeStyle = gd; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.ellipse(197,118,9,8,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  // Right pupil
+  ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(197,118,4,4,0,0,Math.PI*2); ctx.fill();
+  // Right highlight
+  ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(200,115,2,2,0,0,Math.PI*2); ctx.fill();
+  // Right cat liner
+  ctx.strokeStyle = g; ctx.lineWidth = 1.8;
+  ctx.beginPath(); ctx.moveTo(220,118); ctx.lineTo(230,113); ctx.stroke();
+  
+  // === NOSE ===
+  ctx.shadowBlur = 3;
+  ctx.strokeStyle = gd; ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(155,128); ctx.quadraticCurveTo(150,155, 152,165);
+  ctx.quadraticCurveTo(155,168, 160,168);
+  ctx.quadraticCurveTo(165,168, 168,165);
+  ctx.quadraticCurveTo(170,155, 165,128); ctx.stroke();
+  // Nostrils
+  ctx.beginPath(); ctx.ellipse(151,168,5,3,0.3,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(169,168,5,3,-0.3,0,Math.PI*2); ctx.stroke();
+  
+  // === LIPS (full, with lipstick) ===
+  ctx.shadowBlur = 5;
+  ctx.strokeStyle = g; ctx.lineWidth = 1.8;
+  // Upper lip
+  ctx.beginPath();
+  ctx.moveTo(130,190);
+  ctx.quadraticCurveTo(145,182, 160,185);
+  ctx.quadraticCurveTo(175,182, 190,190);
+  ctx.fillStyle = '#003a15';
+  ctx.fill(); ctx.stroke();
+  // Upper lip cupid bow detail
+  ctx.beginPath();
+  ctx.moveTo(130,190);
+  ctx.quadraticCurveTo(148,196, 160,193);
+  ctx.quadraticCurveTo(172,196, 190,190);
+  ctx.fillStyle = '#004a1a'; ctx.fill(); ctx.stroke();
+  // Lower lip (fuller)
+  ctx.beginPath();
+  ctx.moveTo(133,192);
+  ctx.quadraticCurveTo(160,210, 187,192);
+  ctx.quadraticCurveTo(160,215, 133,192);
+  ctx.fillStyle = '#003a15'; ctx.fill(); ctx.stroke();
+  // Lip center line
+  ctx.strokeStyle = gd; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(133,192); ctx.lineTo(187,192); ctx.stroke();
+  
+  // === EARS ===
+  ctx.strokeStyle = gd; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.ellipse(87,140,8,14,0.2,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(233,140,8,14,-0.2,0,Math.PI*2); ctx.stroke();
+  
+  // === NECK ===
+  ctx.strokeStyle = gd; ctx.lineWidth = 1.5;
+  line(140,240, 135,260, gd, 1.5);
+  line(180,240, 185,260, gd, 1.5);
+  // Neck line center
+  ctx.beginPath(); ctx.moveTo(160,240); ctx.lineTo(160,258); ctx.stroke();
+  
+  // === JERSEY collar (Colombia yellow) ===
+  ctx.strokeStyle = '#ccaa00'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(90,260); ctx.lineTo(120,255); ctx.lineTo(140,258); ctx.lineTo(160,260);
+  ctx.lineTo(180,258); ctx.lineTo(200,255); ctx.lineTo(230,260); ctx.stroke();
+  
+  // === SCAN LINE effect overlay ===
+  const scanGrad = ctx.createLinearGradient(0,0,W,0);
+  scanGrad.addColorStop(0,'transparent');
+  scanGrad.addColorStop(0.5,'rgba(0,255,136,0.06)');
+  scanGrad.addColorStop(1,'transparent');
+  ctx.fillStyle = scanGrad;
+  ctx.fillRect(0,0,W,H);
+  
+  // Grid overlay (subtle)
+  ctx.strokeStyle = 'rgba(0,255,136,0.03)'; ctx.lineWidth = 0.5;
+  for(let y=0;y<H;y+=4) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  
+  canvas.style.opacity = '1';
+  
+}
+
+setTimeout(drawPortrait, 300);
 
 // ===== FORMAT INPUT =====
 const gateInput = document.getElementById('gateInput');
